@@ -1,0 +1,66 @@
+# 07/01/11
+
+SHELL = /bin/sh
+#.IGNORE:
+
+# System-specific settings
+
+#ABSPATH = /home/calleman/executables/md_programs
+LD_RUN_PATH=/home/jzhang/library/fftw-2.1.5/lib export LD_RUN_PATH
+CC =		mpiCC
+SHFLAGS =	-fPIC
+SHLIBFLAGS =    -shared
+CCFLAGS =	-O2  -DFFT_FFTW -DGZIP -DLINUX -I/home/jzhang/library/fftw-2.1.5/include
+DEPFLAGS =	-M
+LINK =		mpiCC
+LINKFLAGS =	-O2  -L/home/jzhang/library/fftw-2.1.5/lib
+#LINKFLAGS =	-O2  -L/home/jzhang/library/fftw-2.1.5/lib
+USRLIB =	-lfftw
+SYSLIB =        
+SYSPATH =	
+ARCHIVE =	ar
+ARFLAGS =	-rc
+SIZE =		size
+
+# build rules and dependencies
+# no need to edit this section
+
+include	Makefile.package.settings
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library targets
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+sinclude $(DEPENDS)
